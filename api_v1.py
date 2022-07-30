@@ -17,7 +17,7 @@ async def ret_blur(image: str=Form(), bbox: list=Form()):
     blur = cv2.GaussianBlur(image, (25, 25), 0)
     portion = image[bbox[1]:bbox[3],bbox[0]:bbox[2]]
     blur[bbox[1]:bbox[3],bbox[0]:bbox[2]] = portion
-
+    cv2.imwrite("portion.jpg",portion)
     _, imagebytes = cv2.imencode(".jpg", blur)
     temp_b64 = base64.b64encode(imagebytes).decode("utf8")
 
