@@ -1,3 +1,6 @@
+"""
+Added confidence threshold in version 2
+"""
 import re
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog 
@@ -36,7 +39,7 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName("centralwidget")
         #Image space
         self.label = QtWidgets.QLabel(self.centralwidget)
-        self.label.setGeometry(QtCore.QRect(230, 10, 1080, 720))
+        self.label.setGeometry(QtCore.QRect(230, 10, 1000, 720))
         self.label.setText("")
         self.label.setPixmap(QtGui.QPixmap("hello.jpg"))
         self.label.setScaledContents(True)
@@ -88,7 +91,7 @@ class Ui_MainWindow(object):
         '''
         self.fname = QFileDialog.getOpenFileName(
             MainWindow, "Open Image", "", "Image File (*.jpg *.png *.bmp *.webp);;")
-        print(self.fname[0])
+        # print(self.fname[0])
         self.image = cv2.imread(self.fname[0])
         self.label.setText("")
         self.label.setPixmap(QtGui.QPixmap(self.fname[0]))
@@ -99,20 +102,26 @@ class Ui_MainWindow(object):
         self.object_bbox_dict = dict()
         self.different_classes = list(set(self.class_names))
 
-        for i, cls in enumerate(self.different_classes):
-            self.object_list.addItem(cls)
+        # for i, cls in enumerate(self.different_classes):
+        #     self.object_list.addItem(cls)
         
         for i,diff_class in enumerate(self.different_classes):
             self.object_bbox_dict[diff_class] = []
-            for cls, bbox in zip(self.class_names, self.bboxs):
-                if cls == diff_class:
+            for cls, bbox, conf in zip(self.class_names, self.bboxs, self.confs):
+                # print("conf----",conf)
+                if cls == diff_class and conf >= 0.5:
                     self.object_bbox_dict[diff_class].append(bbox)
         
-        print(self.object_bbox_dict)
+        self.object_list.clear()
+        for ele in self.object_bbox_dict.keys():
+            if len(self.object_bbox_dict[ele]) != 0:
+                self.object_list.addItem(ele)
+
+        # print(self.object_bbox_dict)
 
         if len(self.class_names) > 0:
             for c_name, bbox in zip(self.class_names, self.bboxs):
-                print(bbox)
+                # print(bbox)
                 x1 = bbox[0]
                 y1 = bbox[1]
                 x2 = bbox[2]
