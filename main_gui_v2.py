@@ -27,10 +27,16 @@ class Ui_MainWindow(object):
         'potted plant', 'bed', 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone',
         'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear',
         'hair drier', 'toothbrush']
-
         self.dim = (640,640)
         self.device = torch.device('cpu')
-        self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+        self.model = DetectMultiBackend(
+            weights='yolov5s.pt',
+            device=self.device,
+            dnn=False,
+            data='coco128.yaml'
+            )
+
+        #self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -91,7 +97,6 @@ class Ui_MainWindow(object):
         '''
         self.fname = QFileDialog.getOpenFileName(
             MainWindow, "Open Image", "", "Image File (*.jpg *.png *.bmp *.webp);;")
-        # print(self.fname[0])
         self.image = cv2.imread(self.fname[0])
         self.label.setText("")
         self.label.setPixmap(QtGui.QPixmap(self.fname[0]))
@@ -101,14 +106,11 @@ class Ui_MainWindow(object):
         self.class_names, self.bboxs, self.confs = self.inference_with_bbox(self.model,self.image)
         self.object_bbox_dict = dict()
         self.different_classes = list(set(self.class_names))
-
-        # for i, cls in enumerate(self.different_classes):
-        #     self.object_list.addItem(cls)
         
+        # Create the filter objects dictionary
         for i,diff_class in enumerate(self.different_classes):
             self.object_bbox_dict[diff_class] = []
             for cls, bbox, conf in zip(self.class_names, self.bboxs, self.confs):
-                # print("conf----",conf)
                 if cls == diff_class and conf >= 0.5:
                     self.object_bbox_dict[diff_class].append(bbox)
         
@@ -117,25 +119,17 @@ class Ui_MainWindow(object):
             if len(self.object_bbox_dict[ele]) != 0:
                 self.object_list.addItem(ele)
 
-        # print(self.object_bbox_dict)
-
         if len(self.class_names) > 0:
             for c_name, bbox in zip(self.class_names, self.bboxs):
-                # print(bbox)
                 x1 = bbox[0]
                 y1 = bbox[1]
                 x2 = bbox[2]
                 y2 = bbox[3]
-                # bbox_image =cv2.rectangle(self.image, (x1,y1), (x2,y2), (255,0,0), 2)
-
-            # cv2.imwrite("bbox_image.jpg",bbox_image)
-            # self.label.setPixmap(QtGui.QPixmap("temp.jpg"))
-
+               
     def clicked_select(self):
         '''
         Select specific object button action
         '''
-        # print("Selected")
         self.individual.clear()
         self.selected_obj = self.object_list.currentText()
         individual_object_bboxes = self.object_bbox_dict[self.selected_obj]
@@ -157,9 +151,7 @@ class Ui_MainWindow(object):
             'bbox' : bbox  
             }
         response = requests.post('http://0.0.0.0:8000/get_blur/',data=form_data)
-        # print(response.text)
         final_image = np.asarray(Image.open(io.BytesIO(base64.b64decode(response.text))))
-        # print(final_image)
         stat = cv2.imwrite("final_image.jpg",final_image)
         self.label.setPixmap(QtGui.QPixmap("final_image.jpg"))
 
@@ -183,13 +175,11 @@ class Ui_MainWindow(object):
         for i, det in enumerate(nms_pred):
             for *xyxy, conf, cls in reversed(det):
                 class_index = int(cls.numpy())
-                # print(object_list[class_index])
                 bounding_box = [a.numpy().tolist() for a in xyxy]
                 bounding_box[0] = int(bounding_box[0]*scale_x)
                 bounding_box[1] = int(bounding_box[1]*scale_y)
                 bounding_box[2] = int(bounding_box[2]*scale_x)
                 bounding_box[3] = int(bounding_box[3]*scale_y)
-                # print(bounding_box)
                 class_names.append(self.list_of_objects[class_index])
                 bounding_boxes.append(bounding_box)
                 confidence_scores.append(conf.numpy())

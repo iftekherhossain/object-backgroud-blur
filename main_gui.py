@@ -25,9 +25,16 @@ class Ui_MainWindow(object):
         'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear',
         'hair drier', 'toothbrush']
 
-        self.dim = (640,640)
         self.device = torch.device('cpu')
-        self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
+        self.model = DetectMultiBackend(
+            weights='yolov5s.pt',
+            device=self.device,
+            dnn=False,
+            data='coco128.yaml'
+            )
+        self.dim = (640,640)
+        
+        # self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s')
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
