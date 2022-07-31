@@ -1,4 +1,5 @@
 # Object Background Blur
+This application can blur the background of a selected object. The supported objects are objects in COCO dataset.
 ##### Step-1: clone the repository
 ```
 git clone https://github.com/iftekherhossain/object-backgroud-blur 
