@@ -96,7 +96,7 @@ class Ui_MainWindow(object):
         Click button action
         '''
         self.fname = QFileDialog.getOpenFileName(
-            MainWindow, "Open Image", "", "Image File (*.jpg *.png *.bmp *.webp);;")
+            MainWindow, "Open Image", "", "Image File (*.jpg *.png *.bmp *.webp *.jpeg);;")
         self.image = cv2.imread(self.fname[0])
         self.label.setText("")
         self.label.setPixmap(QtGui.QPixmap(self.fname[0]))
@@ -111,7 +111,7 @@ class Ui_MainWindow(object):
         for i,diff_class in enumerate(self.different_classes):
             self.object_bbox_dict[diff_class] = []
             for cls, bbox, conf in zip(self.class_names, self.bboxs, self.confs):
-                if cls == diff_class and conf >= 0.5:
+                if cls == diff_class and conf >= 0.4:
                     self.object_bbox_dict[diff_class].append(bbox)
         
         self.object_list.clear()
